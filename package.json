@@ -1,0 +1,35 @@
+{
+  "name": "nodejs-realtime-chat",
+  "version": "1.0.0",
+  "description": "A realtime chat with Node.js & Socket.io.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sayhicoelho/nodejs-realtime-chat.git"
+  },
+  "keywords": [
+    "Node.js",
+    "Socket.io",
+    "Realtime",
+    "Chat"
+  ],
+  "author": "Renan Coelho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sayhicoelho/nodejs-realtime-chat/issues"
+  },
+  "homepage": "https://github.com/sayhicoelho/nodejs-realtime-chat#readme",
+  "devDependencies": {
+    "dotenv-safe": "^6.0.0",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.18.3"
+  },
+  "dependencies": {
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
+  }
+}
