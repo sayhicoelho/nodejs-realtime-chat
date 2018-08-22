@@ -5,7 +5,6 @@ const logger = require('morgan')
 const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
-const router = require('./router')
 
 dotenv.load()
 
@@ -14,19 +13,66 @@ app.use(bodyParser.json())
 app.use(logger('dev'))
 app.use(express.static(`${__dirname}/views`))
 
-router(app)
+app.get('/', (req, res) => {
+  res.render('index.html')
+})
+
+let users = []
 
 io.on('connection', socket => {
-  console.log('user connected')
+  socket.on('addUser', username => {
+    users[username] = socket.id
+    socket.username = username
+    socket.join('chat')
 
-  socket.on('disconnect', () => {
-    console.log('user disconnected')
+    io.to('chat').emit('message', {
+      sender: 'server',
+      to: null,
+      text: `${username} connected.`
+    }, Object.keys(users).length)
   })
 
-  socket.on('chat message', message => {
-    console.log(`message: ${message}`)
+  socket.on('changeUsername', (oldUsername, newUsername) => {
+    if (typeof users[newUsername] != 'undefined') // already exists
+      return
 
-    io.emit('chat message', message)
+    socket.username = newUsername
+    users[newUsername] = socket.id
+    delete users[oldUsername]
+
+    io.to('chat').emit('message', {
+      sender: 'server',
+      to: null,
+      text: `User "${oldUsername}" changed to "${newUsername}".`
+    }, Object.keys(users).length)
+  })
+
+  socket.on('message', message => {
+    const sender = message.sender
+    const text = message.text
+    const to = message.to
+
+    const data = { sender, to, text }
+
+    if (!to) {
+      io.to('chat').emit('message', data, Object.keys(users).length)
+    }
+    else if (typeof users[to] != 'undefined' && to != sender) {
+      socket.emit('message', data, Object.keys(users).length)
+      socket.broadcast.to(users[to]).emit('message', data, Object.keys(users).length)
+    }
+  })
+
+  socket.on('disconnect', () => {
+    delete users[socket.username]
+
+    io.to('chat').emit('message', {
+      sender: 'server',
+      to: null,
+      text: `${socket.username} disconnected`
+    }, Object.keys(users).length)
+
+    socket.leave('chat')
   })
 })
 
